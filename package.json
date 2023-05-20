@@ -1,0 +1,13 @@
+{
+  "name": "com.knot.bindings",
+  "version": "0.1.0",
+  "author": "V0odo0",
+  "displayName": "KNOT Bindings",
+  "unity": "2020.3",
+  "description": "Smart property bindings solution for Unity.",
+  "keywords": [
+    "property",
+    "bindings"
+	],
+  "category": "Utility"
+}
