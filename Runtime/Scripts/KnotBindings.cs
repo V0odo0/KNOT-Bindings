@@ -4,18 +4,8 @@ using UnityEngine;
 
 namespace Knot.Bindings
 {
-    public class KnotBindings : MonoBehaviour
+    public static class KnotBindings
     {
-        // Start is called before the first frame update
-        void Start()
-        {
-        
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-        
-        }
+        public static KnotBindingsContainer Global { get; } = new KnotBindingsContainer();
     }
 }

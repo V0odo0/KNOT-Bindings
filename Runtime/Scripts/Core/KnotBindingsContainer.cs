@@ -1,69 +1,76 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
-namespace PaintedRed
+namespace Knot.Bindings
 {
-    public class KnotBindingsContainer : IReadOnlyDictionary<string, IKnotBindingsProperty>
+    public class KnotBindingsContainer
     {
-        private readonly Dictionary<string, IKnotBindingsProperty> _properties = new Dictionary<string, IKnotBindingsProperty>();
+        private readonly Dictionary<Type, Dictionary<string, IKnotBindingsProperty>> _properties =
+            new Dictionary<Type, Dictionary<string, IKnotBindingsProperty>>();
 
 
-        public bool HasProperty<T>(string path)
+        KnotBindingsProperty<T> Fetch<T>(string propertyName)
         {
-            return _properties.ContainsKey(path) && _properties[path] is IKnotBindingsPropertyT<T>;
+            if (!_properties.ContainsKey(typeof(T)))
+                _properties.Add(typeof(T), new Dictionary<string, IKnotBindingsProperty>());
+
+            if (!_properties[typeof(T)].ContainsKey(propertyName))
+                _properties[typeof(T)].Add(propertyName, new KnotBindingsProperty<T>());
+
+            return (KnotBindingsProperty<T>) _properties[typeof(T)][propertyName];
         }
 
-        public bool HasProperty(string path)
+
+        public T Get<T>(string propertyName, T defaultValue = default)
         {
-            return _properties.ContainsKey(path);
+            if (string.IsNullOrEmpty(propertyName))
+                return defaultValue;
+
+            if (!_properties.ContainsKey(typeof(T)))
+                return defaultValue;
+
+            if (!_properties[typeof(T)].ContainsKey(propertyName))
+                return defaultValue;
+
+            var property = (KnotBindingsProperty<T>)_properties[typeof(T)][propertyName];
+
+            return property.Get();
         }
 
-        public bool Add(string path, IKnotBindingsProperty property)
+        public void Set<T>(string propertyName, T value, int setterPriority = 0, object setter = null)
         {
-            return false;
+            if (string.IsNullOrEmpty(propertyName))
+                return;
+
+            Fetch<T>(propertyName).Set(value, setterPriority, setter);
         }
 
-        public bool Remove(string path)
+        public void Delete<T>(string propertyName, int setterPriority = 0, object setter = null)
         {
-            if (!_properties.ContainsKey(path))
+            if (string.IsNullOrEmpty(propertyName))
+                return;
+
+            Fetch<T>(propertyName).Delete(setterPriority, setter);
+        }
+
+        public bool RegisterPropertyChanged<T>(string propertyName, KnotBindingsProperty<T>.PropertyChangedDelegate propertyChangedDelegate)
+        {
+            if (string.IsNullOrEmpty(propertyName) || propertyChangedDelegate == null)
                 return false;
 
-            _properties.Remove(path);
+            Fetch<T>(propertyName).Changed += propertyChangedDelegate;
+
             return true;
         }
 
-        public bool TryGetProperty<T>(string path, out IKnotBindingsPropertyT<T> property)
+        public bool UnRegisterPropertyChanged<T>(string propertyName, KnotBindingsProperty<T>.PropertyChangedDelegate propertyChangedDelegate)
         {
-            property = null;
-            if (!HasProperty<T>(path))
+            if (string.IsNullOrEmpty(propertyName) || propertyChangedDelegate == null)
                 return false;
 
-            property = _properties[path] as IKnotBindingsPropertyT<T>;
+            Fetch<T>(propertyName).Changed -= propertyChangedDelegate;
+
             return true;
         }
-
-        public bool TryGetProperty(string path, out IKnotBindingsProperty property)
-        {
-            return _properties.TryGetValue(path, out property);
-        }
-
-        public T GetPropertyValue<T>(string path, T defaultValue = default)
-        {
-            if (TryGetProperty<T>(path, out var p))
-                return p.Value;
-
-            return defaultValue;
-        }
-        
-        
-        public IEnumerator<KeyValuePair<string, IKnotBindingsProperty>> GetEnumerator() => _properties.GetEnumerator();
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
-        public int Count => _properties.Count;
-        public bool ContainsKey(string key) => _properties.ContainsKey(key);
-        public bool TryGetValue(string key, out IKnotBindingsProperty value) => _properties.TryGetValue(key, out value);
-        public IKnotBindingsProperty this[string key] => _properties[key];
-        public IEnumerable<string> Keys => _properties.Keys;
-        public IEnumerable<IKnotBindingsProperty> Values => _properties.Values;
     }
 }

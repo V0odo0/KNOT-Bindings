@@ -1,94 +1,54 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
-namespace PaintedRed
+namespace Knot.Bindings
 {
-    [Serializable]
-    public class KnotBindingsProperty<T> : IKnotBindingsPropertyT<T>
+    public class KnotBindingsProperty<T> : IKnotBindingsProperty
     {
-        public event Action<T> Changed;
+        public event PropertyChangedDelegate Changed;
 
-        public T Value
-        {
-            get => Overrides.Count == 0 ? _value : Overrides.Last().Value;
-            set
-            {
-                var oldValue = _value;
-                _value = value;
-                if (Overrides.Count == 0 && !(oldValue?.Equals(value) ?? false))
-                    Changed?.Invoke(_value);
-            }
-        }
-        [SerializeField] private T _value;
-
-        protected SortedList<int, T> Overrides => _overrides ?? (_overrides = new SortedList<int, T>());
-        [NonSerialized] private SortedList<int, T> _overrides = new SortedList<int, T>();
-
-
-        public KnotBindingsProperty(T value = default)
-        {
-            _value = value;
-        }
-
-
-        public void InvokeChangedIfNeeded(T oldValue)
-        {
-            if (!(oldValue?.Equals(Value) ?? false))
-                Changed?.Invoke(Value);
-        }
+        private readonly SortedList<int, T> _values = new SortedList<int, T>();
         
-        public void AddOverride(int order, T value)
+
+        public void Set(T value, int setterPriority = 0, object setter = null)
         {
-            if (Overrides.ContainsKey(order))
-            {
-                if (!(value?.Equals(Overrides[order]) ?? false))
-                {
-                    var oldValue = Value;
-                    Overrides[order] = value;
-                    InvokeChangedIfNeeded(oldValue);
-                }
-            }
-            else
-            {
-                var oldValue = Value;
-                Overrides.Add(order, value);
-                InvokeChangedIfNeeded(oldValue);
-            }
+            var oldValue = Get();
+            if (_values.ContainsKey(setterPriority))
+                _values[setterPriority] = value;
+            else _values.Add(setterPriority, value);
+
+            var newValue = Get();
+            if (!Nullable.Equals(oldValue, newValue))
+                Changed?.Invoke(oldValue, newValue, setter);
         }
 
-        public void RemoveOverride(int order)
+        public T Get(T defaultValue = default)
         {
-            if (!Overrides.ContainsKey(order))
-                return;
-
-            var oldValue = Value;
-            Overrides.Remove(order);
-            InvokeChangedIfNeeded(oldValue);
+            return _values.LastOrDefault().Value ?? defaultValue;
         }
 
-        public void ClearOverrides()
+        public void Delete(int setterPriority = 0, object setter = null)
         {
-            if (Overrides.Count == 0)
+            if (!_values.ContainsKey(setterPriority))
                 return;
 
-            var oldValue = Value;
-            Overrides.Clear();
-            InvokeChangedIfNeeded(oldValue);
+            var oldValue = Get();
+            _values.Remove(setterPriority);
+
+            var newValue = Get();
+            if (!Nullable.Equals(oldValue, newValue))
+                Changed?.Invoke(oldValue, newValue, setter);
         }
 
         public bool Equals(KnotBindingsProperty<T> other)
         {
-            return other != null && Value != null && Value.Equals(other.Value);
-        }
-
-        public override string ToString()
-        {
-            return $"{Value?.ToString()} [{Overrides.Count}]";
+            return other != null && Get() != null && Get().Equals(other.Get());
         }
 
 
-        public static implicit operator T(KnotBindingsProperty<T> d) => d.Value;
+        public static implicit operator T(KnotBindingsProperty<T> d) => d.Get();
+
+        public delegate void PropertyChangedDelegate(T oldValue, T newValue, object setter);
     }
 }
