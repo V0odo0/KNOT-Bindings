@@ -608,8 +608,10 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Move the player by <b>[A-D]</b> keys and drag the slider to see <b>TWO-WAY
-    DATABINDING</b> implementation by KNOT Bindings.
+  m_Text: '<b>TWO-WAY DATABINDING</b>
+
+    Move the player by <b>[A-D]</b> keys and
+    drag the slider'
 --- !u!222 &655651167
 CanvasRenderer:
   m_ObjectHideFlags: 0
