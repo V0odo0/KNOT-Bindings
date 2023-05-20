@@ -1,6 +1,6 @@
 {
   "name": "com.knot.bindings",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": "V0odo0",
   "displayName": "KNOT Bindings",
   "unity": "2020.3",
@@ -9,5 +9,12 @@
     "property",
     "bindings"
 	],
-  "category": "Utility"
+  "category": "Utility",
+  "samples": [
+        {
+            "displayName": "Demo",
+            "description": "Features overview",
+            "path": "Samples~/Demo"
+        }
+    ]
 }

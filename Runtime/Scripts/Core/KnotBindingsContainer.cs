@@ -20,7 +20,6 @@ namespace Knot.Bindings
             return (KnotBindingsProperty<T>) _properties[typeof(T)][propertyName];
         }
 
-
         public T Get<T>(string propertyName, T defaultValue = default)
         {
             if (string.IsNullOrEmpty(propertyName))
@@ -53,6 +52,14 @@ namespace Knot.Bindings
             Fetch<T>(propertyName).Delete(setterPriority, setter);
         }
 
+        public void Clear<T>(string propertyName, int setterPriority = 0, object setter = null)
+        {
+            if (string.IsNullOrEmpty(propertyName))
+                return;
+
+            Fetch<T>(propertyName).Clear(setter);
+        }
+
         public bool RegisterPropertyChanged<T>(string propertyName, KnotBindingsProperty<T>.PropertyChangedDelegate propertyChangedDelegate)
         {
             if (string.IsNullOrEmpty(propertyName) || propertyChangedDelegate == null)
@@ -72,5 +79,7 @@ namespace Knot.Bindings
 
             return true;
         }
+
+        public delegate void NamedPropertyChangedDelegate(string propertyName, object oldValue, object newValue, object setter);
     }
 }

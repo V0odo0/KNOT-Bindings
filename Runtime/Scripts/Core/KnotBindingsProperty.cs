@@ -41,6 +41,17 @@ namespace Knot.Bindings
                 Changed?.Invoke(oldValue, newValue, setter);
         }
 
+        public void Clear(object setter = null)
+        {
+            if (_values.Count == 0)
+                return;
+
+            var oldValue = Get();
+            _values.Clear();
+
+            Changed?.Invoke(oldValue, default, setter);
+        }
+
         public bool Equals(KnotBindingsProperty<T> other)
         {
             return other != null && Get() != null && Get().Equals(other.Get());
