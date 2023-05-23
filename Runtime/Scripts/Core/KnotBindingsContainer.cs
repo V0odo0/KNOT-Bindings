@@ -16,17 +16,7 @@ namespace Knot.Bindings
 
         public KnotBindingsContainer(params (string propertyName, IKnotBindingsProperty property)[] properties)
         {
-            foreach (var p in properties)
-            {
-                if (string.IsNullOrEmpty(p.propertyName) || p.property == null)
-                    continue;
-
-                if (!_properties.ContainsKey(p.property.GetValueType()))
-                    _properties.Add(p.property.GetValueType(), new Dictionary<string, IKnotBindingsProperty>());
-
-                if (!_properties[p.property.GetValueType()].ContainsKey(p.propertyName))
-                    _properties[p.property.GetValueType()].Add(p.propertyName, p.property);
-            }
+            AppProperties(properties);
         }
 
 
@@ -79,6 +69,21 @@ namespace Knot.Bindings
                 return;
 
             Fetch<T>(propertyName).Clear(setter);
+        }
+
+        public void AppProperties(params (string propertyName, IKnotBindingsProperty property)[] properties)
+        {
+            foreach (var p in properties)
+            {
+                if (string.IsNullOrEmpty(p.propertyName) || p.property == null)
+                    continue;
+
+                if (!_properties.ContainsKey(p.property.GetValueType()))
+                    _properties.Add(p.property.GetValueType(), new Dictionary<string, IKnotBindingsProperty>());
+
+                if (!_properties[p.property.GetValueType()].ContainsKey(p.propertyName))
+                    _properties[p.property.GetValueType()].Add(p.propertyName, p.property);
+            }
         }
 
         public bool RegisterPropertyChanged<T>(string propertyName, KnotBindingsProperty<T>.PropertyChangedDelegate propertyChangedCallback)
