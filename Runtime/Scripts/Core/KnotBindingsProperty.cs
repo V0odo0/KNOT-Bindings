@@ -7,6 +7,7 @@ namespace Knot.Bindings
     public class KnotBindingsProperty<T> : IKnotBindingsProperty
     {
         public event PropertyChangedDelegate Changed;
+        public event Action Updated;
 
         private readonly SortedList<int, T> _values = new SortedList<int, T>();
         
@@ -20,7 +21,10 @@ namespace Knot.Bindings
 
             var newValue = Get();
             if (!Nullable.Equals(oldValue, newValue))
+            {
                 Changed?.Invoke(oldValue, newValue, setter);
+                Updated?.Invoke();
+            }
         }
 
         public T Get(T defaultValue = default)
@@ -38,7 +42,10 @@ namespace Knot.Bindings
 
             var newValue = Get();
             if (!Nullable.Equals(oldValue, newValue))
+            {
                 Changed?.Invoke(oldValue, newValue, setter);
+                Updated?.Invoke();
+            }
         }
 
         public void Clear(object setter = null)
@@ -50,12 +57,15 @@ namespace Knot.Bindings
             _values.Clear();
 
             Changed?.Invoke(oldValue, default, setter);
+            Updated?.Invoke();
         }
 
         public bool Equals(KnotBindingsProperty<T> other)
         {
             return other != null && Get() != null && Get().Equals(other.Get());
         }
+
+        public Type GetValueType() => typeof(T);
 
 
         public static implicit operator T(KnotBindingsProperty<T> d) => d.Get();

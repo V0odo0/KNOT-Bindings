@@ -9,6 +9,27 @@ namespace Knot.Bindings
             new Dictionary<Type, Dictionary<string, IKnotBindingsProperty>>();
 
 
+        public KnotBindingsContainer()
+        {
+
+        }
+
+        public KnotBindingsContainer(params (string propertyName, IKnotBindingsProperty property)[] properties)
+        {
+            foreach (var p in properties)
+            {
+                if (string.IsNullOrEmpty(p.propertyName) || p.property == null)
+                    continue;
+
+                if (!_properties.ContainsKey(p.property.GetValueType()))
+                    _properties.Add(p.property.GetValueType(), new Dictionary<string, IKnotBindingsProperty>());
+
+                if (!_properties[p.property.GetValueType()].ContainsKey(p.propertyName))
+                    _properties[p.property.GetValueType()].Add(p.propertyName, p.property);
+            }
+        }
+
+
         KnotBindingsProperty<T> Fetch<T>(string propertyName)
         {
             if (!_properties.ContainsKey(typeof(T)))
@@ -60,22 +81,42 @@ namespace Knot.Bindings
             Fetch<T>(propertyName).Clear(setter);
         }
 
-        public bool RegisterPropertyChanged<T>(string propertyName, KnotBindingsProperty<T>.PropertyChangedDelegate propertyChangedDelegate)
+        public bool RegisterPropertyChanged<T>(string propertyName, KnotBindingsProperty<T>.PropertyChangedDelegate propertyChangedCallback)
         {
-            if (string.IsNullOrEmpty(propertyName) || propertyChangedDelegate == null)
+            if (string.IsNullOrEmpty(propertyName) || propertyChangedCallback == null)
                 return false;
 
-            Fetch<T>(propertyName).Changed += propertyChangedDelegate;
+            Fetch<T>(propertyName).Changed += propertyChangedCallback;
 
             return true;
         }
 
-        public bool UnRegisterPropertyChanged<T>(string propertyName, KnotBindingsProperty<T>.PropertyChangedDelegate propertyChangedDelegate)
+        public bool UnRegisterPropertyChanged<T>(string propertyName, KnotBindingsProperty<T>.PropertyChangedDelegate propertyChangedCallback)
         {
-            if (string.IsNullOrEmpty(propertyName) || propertyChangedDelegate == null)
+            if (string.IsNullOrEmpty(propertyName) || propertyChangedCallback == null)
                 return false;
 
-            Fetch<T>(propertyName).Changed -= propertyChangedDelegate;
+            Fetch<T>(propertyName).Changed -= propertyChangedCallback;
+
+            return true;
+        }
+
+        public bool RegisterPropertyUpdated<T>(string propertyName, Action updatedCallback)
+        {
+            if (string.IsNullOrEmpty(propertyName) || updatedCallback == null)
+                return false;
+
+            Fetch<T>(propertyName).Updated += updatedCallback;
+
+            return true;
+        }
+
+        public bool UnRegisterPropertyUpdated<T>(string propertyName, Action updatedCallback)
+        {
+            if (string.IsNullOrEmpty(propertyName) || updatedCallback == null)
+                return false;
+
+            Fetch<T>(propertyName).Updated -= updatedCallback;
 
             return true;
         }
