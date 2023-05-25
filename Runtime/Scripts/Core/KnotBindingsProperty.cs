@@ -7,7 +7,9 @@ namespace Knot.Bindings
     public class KnotBindingsProperty<T> : IKnotBindingsProperty
     {
         public event PropertyChangedDelegate Changed;
+        public event Action<object> UpdatedWithSetter;
         public event Action Updated;
+
 
         private readonly SortedList<int, T> _values = new SortedList<int, T>();
         
@@ -23,6 +25,7 @@ namespace Knot.Bindings
             if (!Nullable.Equals(oldValue, newValue))
             {
                 Changed?.Invoke(oldValue, newValue, setter);
+                UpdatedWithSetter?.Invoke(setter);
                 Updated?.Invoke();
             }
         }
@@ -44,6 +47,7 @@ namespace Knot.Bindings
             if (!Nullable.Equals(oldValue, newValue))
             {
                 Changed?.Invoke(oldValue, newValue, setter);
+                UpdatedWithSetter?.Invoke(setter);
                 Updated?.Invoke();
             }
         }
@@ -57,6 +61,7 @@ namespace Knot.Bindings
             _values.Clear();
 
             Changed?.Invoke(oldValue, default, setter);
+            UpdatedWithSetter?.Invoke(setter);
             Updated?.Invoke();
         }
 
