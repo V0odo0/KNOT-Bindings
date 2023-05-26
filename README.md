@@ -20,3 +20,128 @@ Add dependency to your /YourProjectName/Packages/manifest.json
 "com.knot.bindings": "https://github.com/V0odo0/KNOT-Bindings.git",
 ```
 
+## Usage example #1: Property override
+
+```C#
+//Global container that exists till domain reload / application shut down
+var bindingsContainer = KnotBindings.Global;
+
+//Add property with default value
+bindingsContainer.Set("EnablePlayerControls", true);
+
+//Read property value
+Debug.Log(bindingsContainer.Get("EnablePlayerControls", false)); //true
+
+//Override property value by setting higher priority 
+bindingsContainer.Set("EnablePlayerControls", false, 100);
+
+//Read property value after override
+Debug.Log(bindingsContainer.Get("EnablePlayerControls", false)); //false
+
+//Delete previously set override value
+bindingsContainer.Delete<bool>("EnablePlayerControls", 100);
+
+//Read property value after override
+Debug.Log(bindingsContainer.Get("EnablePlayerControls", true)); //true
+```
+
+## Usage example #2: Two-Way Binding
+```C#
+//Class that changes CameraZoom property by player input and applies it to Camera
+public class CameraController : MonoBehaviour
+{
+    public float CameraZoom;
+
+    void OnEnable()
+    {
+        //Register property changed callback
+        KnotBindings.Global.RegisterPropertyChanged<float>("CameraZoom", OnCameraZoomPropertyChanged);
+    }
+
+    void OnDisable()
+    {
+        //UnRegister callbacks
+        KnotBindings.Global.UnRegisterPropertyChanged<float>("CameraZoom", OnCameraZoomPropertyChanged);
+    }
+
+    void OnCameraZoomPropertyChanged(float oldvalue, float newvalue, object setter)
+    {
+        //Return if the property has been changed by this CameraController
+        if (setter as Object != this)
+            return;
+
+        //Apply zoom from binding property value
+        CameraZoom = newvalue;
+        ApplyCameraZoom();
+    }
+
+    void Update()
+    {
+        //Read mouse scroll input
+        if (Input.GetMouseButtonDown(2))
+        {
+            //Modify CameraZoom
+            CameraZoom += Input.mouseScrollDelta.y;
+            CameraZoom = Mathf.Clamp(CameraZoom, 1, 10);
+
+            //Set property value and provide the setter (this CameraController)
+            KnotBindings.Global.Set("CameraZoom", CameraZoom, setter: this);
+
+            ApplyCameraZoom();
+        }
+    }
+
+    void ApplyCameraZoom()
+    {
+        var cameraLocalPos = Camera.main.transform.localPosition;
+        cameraLocalPos.z = CameraZoom;
+        Camera.main.transform.localPosition = cameraLocalPos;
+    }
+}
+```
+
+```C#
+//Class that changes CameraZoom property by Slider
+public class UICameraSettingsPanel : MonoBehaviour
+{
+    public Slider CameraZoomSlider;
+
+    void Awake()
+    {
+        CameraZoomSlider.minValue = 1;
+        CameraZoomSlider.maxValue = 10;
+    }
+
+    void OnEnable()
+    {
+        //Register slider value changed callback
+        CameraZoomSlider.onValueChanged.AddListener(OnCameraZoomChanged);
+
+        //Register property changed callback
+        KnotBindings.Global.RegisterPropertyChanged<float>("CameraZoom", OnCameraZoomPropertyChanged);
+    }
+
+    void OnDisable()
+    {
+        //UnRegister callbacks
+        CameraZoomSlider.onValueChanged.RemoveListener(OnCameraZoomChanged);
+        KnotBindings.Global.UnRegisterPropertyChanged<float>("CameraZoom", OnCameraZoomPropertyChanged);
+    }
+
+    void OnCameraZoomChanged(float cameraZoom)
+    {
+        //Set property value and provide the setter (this UICameraController)
+        KnotBindings.Global.Set("CameraZoom", cameraZoom, setter: this);
+    }
+
+    void OnCameraZoomPropertyChanged(float oldvalue, float newvalue, object setter)
+    {
+        //Return if the property has been changed by this UICameraController
+        if (setter as Object != this)
+            return;
+
+        //Apply zoom from binding property value
+        CameraZoomSlider.SetValueWithoutNotify(newvalue);
+    }
+}
+```
