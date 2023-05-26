@@ -2,6 +2,7 @@
 ![Dependencies](https://img.shields.io/badge/dependencies-none-green)
 ![Platforms](https://img.shields.io/badge/platforms-all-blue)
 
+![ezgif-4-cafed11d6c](https://github.com/V0odo0/KNOT-Bindings/assets/10213769/cc5f3569-40b4-4476-a045-ec7f32767d64)
 ## Installation
 
 Install via Package Manager
@@ -45,7 +46,7 @@ bindingsContainer.Delete<bool>("EnablePlayerControls", 100);
 Debug.Log(bindingsContainer.Get("EnablePlayerControls", true)); //true
 ```
 
-## Usage example #2: Two-Way Binding
+## Usage example #2: Two-Way Databinding
 ```C#
 //Class that changes CameraZoom property by player input and applies it to Camera
 public class CameraController : MonoBehaviour
