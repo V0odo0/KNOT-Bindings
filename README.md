@@ -67,7 +67,7 @@ public class CameraController : MonoBehaviour
     void OnCameraZoomPropertyChanged(float oldvalue, float newvalue, object setter)
     {
         //Return if the property has been changed by this CameraController
-        if (setter as Object != this)
+        if (setter as Object == this)
             return;
 
         //Apply zoom from binding property value
@@ -137,7 +137,7 @@ public class UICameraSettingsPanel : MonoBehaviour
     void OnCameraZoomPropertyChanged(float oldvalue, float newvalue, object setter)
     {
         //Return if the property has been changed by this UICameraController
-        if (setter as Object != this)
+        if (setter as Object == this)
             return;
 
         //Apply zoom from binding property value
