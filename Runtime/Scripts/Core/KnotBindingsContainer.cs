@@ -1,10 +1,14 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Knot.Bindings
 {
     public class KnotBindingsContainer
     {
+        public event Action<string> AnyPropertyChanged; 
+
         private readonly Dictionary<Type, Dictionary<string, IKnotBindingsProperty>> _properties =
             new Dictionary<Type, Dictionary<string, IKnotBindingsProperty>>();
 
@@ -16,20 +20,9 @@ namespace Knot.Bindings
 
         public KnotBindingsContainer(params (string propertyName, IKnotBindingsProperty property)[] properties)
         {
-            AppProperties(properties);
+            AddProperties(properties);
         }
 
-
-        KnotBindingsProperty<T> Fetch<T>(string propertyName)
-        {
-            if (!_properties.ContainsKey(typeof(T)))
-                _properties.Add(typeof(T), new Dictionary<string, IKnotBindingsProperty>());
-
-            if (!_properties[typeof(T)].ContainsKey(propertyName))
-                _properties[typeof(T)].Add(propertyName, new KnotBindingsProperty<T>());
-
-            return (KnotBindingsProperty<T>) _properties[typeof(T)][propertyName];
-        }
 
         public T Get<T>(string propertyName, T defaultValue = default)
         {
@@ -52,7 +45,7 @@ namespace Knot.Bindings
             if (string.IsNullOrEmpty(propertyName))
                 return;
 
-            Fetch<T>(propertyName).Set(value, setterPriority, setter);
+            AddProperty<T>(propertyName).Set(value, setterPriority, setter);
         }
 
         public void Delete<T>(string propertyName, int setterPriority = 0, object setter = null)
@@ -60,7 +53,7 @@ namespace Knot.Bindings
             if (string.IsNullOrEmpty(propertyName))
                 return;
 
-            Fetch<T>(propertyName).Delete(setterPriority, setter);
+            AddProperty<T>(propertyName).Delete(setterPriority, setter);
         }
 
         public void Clear<T>(string propertyName, int setterPriority = 0, object setter = null)
@@ -68,30 +61,46 @@ namespace Knot.Bindings
             if (string.IsNullOrEmpty(propertyName))
                 return;
 
-            Fetch<T>(propertyName).Clear(setter);
+            AddProperty<T>(propertyName).Clear(setter);
         }
 
-        public void AppProperties(params (string propertyName, IKnotBindingsProperty property)[] properties)
+        public void AddProperties(params (string propertyName, IKnotBindingsProperty property)[] properties)
         {
             foreach (var p in properties)
+                AddProperty(p.propertyName, p.property);
+        }
+
+        public void AddProperty(string propertyName, IKnotBindingsProperty property)
+        {
+            if (string.IsNullOrEmpty(propertyName) || property == null)
+                return;
+
+            if (!_properties.ContainsKey(property.GetValueType()))
+                _properties.Add(property.GetValueType(), new Dictionary<string, IKnotBindingsProperty>());
+
+            if (!_properties[property.GetValueType()].ContainsKey(propertyName))
             {
-                if (string.IsNullOrEmpty(p.propertyName) || p.property == null)
-                    continue;
-
-                if (!_properties.ContainsKey(p.property.GetValueType()))
-                    _properties.Add(p.property.GetValueType(), new Dictionary<string, IKnotBindingsProperty>());
-
-                if (!_properties[p.property.GetValueType()].ContainsKey(p.propertyName))
-                    _properties[p.property.GetValueType()].Add(p.propertyName, p.property);
+                property.Updated += () =>
+                {
+                    if (_properties.Values.Any(p => p.Values.Contains(property)))
+                        AnyPropertyChanged?.Invoke(propertyName);
+                };
+                _properties[property.GetValueType()].Add(propertyName, property);
             }
         }
 
+        public KnotBindingsProperty<T> AddProperty<T>(string propertyName)
+        {
+            AddProperty(propertyName, new KnotBindingsProperty<T>());
+            return (KnotBindingsProperty<T>)_properties[typeof(T)][propertyName];
+        }
+        
         public bool RegisterPropertyChanged<T>(string propertyName, KnotBindingsProperty<T>.PropertyChangedDelegate propertyChangedCallback)
         {
             if (string.IsNullOrEmpty(propertyName) || propertyChangedCallback == null)
                 return false;
 
-            Fetch<T>(propertyName).Changed += propertyChangedCallback;
+            AddProperty<T>(propertyName).Changed += propertyChangedCallback;
 
             return true;
         }
@@ -101,7 +110,7 @@ namespace Knot.Bindings
             if (string.IsNullOrEmpty(propertyName) || propertyChangedCallback == null)
                 return false;
 
-            Fetch<T>(propertyName).Changed -= propertyChangedCallback;
+            AddProperty<T>(propertyName).Changed -= propertyChangedCallback;
 
             return true;
         }
@@ -111,7 +120,7 @@ namespace Knot.Bindings
             if (string.IsNullOrEmpty(propertyName) || updatedCallback == null)
                 return false;
 
-            Fetch<T>(propertyName).Updated += updatedCallback;
+            AddProperty<T>(propertyName).Updated += updatedCallback;
 
             return true;
         }
@@ -121,7 +130,7 @@ namespace Knot.Bindings
             if (string.IsNullOrEmpty(propertyName) || updatedCallback == null)
                 return false;
 
-            Fetch<T>(propertyName).Updated -= updatedCallback;
+            AddProperty<T>(propertyName).Updated -= updatedCallback;
 
             return true;
         }
