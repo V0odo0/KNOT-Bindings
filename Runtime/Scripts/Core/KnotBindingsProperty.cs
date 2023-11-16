@@ -12,7 +12,15 @@ namespace Knot.Bindings
 
 
         private readonly SortedList<int, T> _values = new SortedList<int, T>();
-        
+
+
+        public KnotBindingsProperty() { }
+
+        public KnotBindingsProperty(T defaultValue)
+        {
+            _values.Add(0, defaultValue);
+        }
+
 
         public void Set(T value, int setterPriority = 0, object setter = null)
         {
@@ -33,6 +41,14 @@ namespace Knot.Bindings
         public T Get(T defaultValue = default)
         {
             return _values.LastOrDefault().Value ?? defaultValue;
+        }
+
+        public T GetFromSetterPriority(int setterPriority, T defaultValue = default)
+        {
+            if (!_values.ContainsKey(setterPriority))
+                return Get(defaultValue);
+
+            return _values[setterPriority];
         }
 
         public void Delete(int setterPriority = 0, object setter = null)

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace Knot.Bindings
 {
@@ -15,12 +16,20 @@ namespace Knot.Bindings
 
         public KnotBindingsContainer()
         {
-
+            CollectProperties();
         }
 
         public KnotBindingsContainer(params (string propertyName, IKnotBindingsProperty property)[] properties)
         {
+            CollectProperties();
             AddProperties(properties);
+        }
+
+        protected void CollectProperties()
+        {
+            foreach (var p in this.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
+                if (p.GetValue(this, null) is IKnotBindingsProperty knotBindingsProperty)
+                    AddProperty(p.Name, knotBindingsProperty);
         }
 
 
@@ -94,7 +103,9 @@ namespace Knot.Bindings
             AddProperty(propertyName, new KnotBindingsProperty<T>());
             return (KnotBindingsProperty<T>)_properties[typeof(T)][propertyName];
         }
+
         
+
         public bool RegisterPropertyChanged<T>(string propertyName, KnotBindingsProperty<T>.PropertyChangedDelegate propertyChangedCallback)
         {
             if (string.IsNullOrEmpty(propertyName) || propertyChangedCallback == null)
@@ -134,6 +145,7 @@ namespace Knot.Bindings
 
             return true;
         }
+
 
         public delegate void NamedPropertyChangedDelegate(string propertyName, object oldValue, object newValue, object setter);
     }
