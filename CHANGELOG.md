@@ -1,3 +1,7 @@
+## 0.3.3 (2023-24-11)
+
+* Added HasProperty to KnotBindingsContainer
+
 ## 0.3.2 (2023-16-11)
 
 * Added KnotBindingsProperty constructor
