@@ -106,19 +106,24 @@ namespace Knot.Bindings
 
         public bool HasProperty<T>(string propertyName)
         {
+            return HasProperty(typeof(T), propertyName);
+        }
+
+        public bool HasProperty(Type propertyType, string propertyName)
+        {
             if (string.IsNullOrEmpty(propertyName))
                 return false;
 
-            if (!_properties.ContainsKey(typeof(T)))
+            if (!_properties.ContainsKey(propertyType))
                 return false;
 
-            if (!_properties[typeof(T)].ContainsKey(propertyName))
+            if (!_properties[propertyType].ContainsKey(propertyName))
                 return false;
 
             return true;
         }
 
-        
+
 
         public bool RegisterPropertyChanged<T>(string propertyName, KnotBindingsProperty<T>.PropertyChangedDelegate propertyChangedCallback)
         {
