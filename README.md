@@ -24,8 +24,8 @@ Add dependency to your /YourProjectName/Packages/manifest.json
 ## Usage example #1: Property override
 
 ```C#
-//Global container that exists till domain reload / application shut down
-var bindingsContainer = KnotBindings.Global;
+//Create or get bindings container
+var bindingsContainer = new KnotBindingsContainer();
 
 //Add property with default value
 bindingsContainer.Set("EnablePlayerControls", true);
@@ -42,7 +42,7 @@ Debug.Log(bindingsContainer.Get("EnablePlayerControls", false)); //false
 //Delete previously set override value
 bindingsContainer.Delete<bool>("EnablePlayerControls", 100);
 
-//Read property value after override
+//Read property value after deleting higher priority override
 Debug.Log(bindingsContainer.Get("EnablePlayerControls", true)); //true
 ```
 
@@ -143,6 +143,58 @@ public class UICameraSettingsPanel : MonoBehaviour
 
         //Apply zoom from binding property value
         CameraZoomSlider.SetValueWithoutNotify(newvalue);
+    }
+}
+```
+
+## Usage example #3: Global Bindings
+
+```C#
+public class MyGlobalBindings
+{
+    public static MyGlobalBindings Instance = new();
+
+    public UIBindings UI { get; } = new();
+
+
+    public class UIBindings : KnotBindingsContainer
+    {
+        public KnotBindingsProperty<bool> Interactable { get; } = new(true);
+    }
+}
+```
+```C#
+public class MyUIManager : MonoBehaviour
+{
+    [SerializeField] private CanvasGroup _canvasGroup;
+
+    void OnEnable()
+    {
+        MyGlobalBindings.Instance.UI.AnyPropertyChanged += OnAnyPropertyChanged;
+        //or
+        MyGlobalBindings.Instance.UI.Interactable.Changed += OnInteractableChanged;
+    }
+
+    void OnDisable()
+    {
+        MyGlobalBindings.Instance.UI.AnyPropertyChanged -= OnAnyPropertyChanged;
+        //or
+        MyGlobalBindings.Instance.UI.Interactable.Changed -= OnInteractableChanged;
+    }
+
+    void OnAnyPropertyChanged(string propertyName)
+    {
+        switch (propertyName)
+        {
+            case nameof(MyGlobalBindings.UI.Interactable):
+                _canvasGroup.interactable = MyGlobalBindings.Instance.UI.Interactable;
+                break;
+        }
+    }
+
+    void OnInteractableChanged(bool oldvalue, bool newvalue, object setter)
+    {
+        _canvasGroup.interactable = newvalue;
     }
 }
 ```
