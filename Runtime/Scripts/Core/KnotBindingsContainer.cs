@@ -53,7 +53,7 @@ namespace Knot.Bindings
         {
             if (string.IsNullOrEmpty(propertyName))
                 return;
-
+            
             AddProperty<T>(propertyName).Set(value, setterPriority, setter);
         }
 
@@ -121,6 +121,16 @@ namespace Knot.Bindings
                 return false;
 
             return true;
+        }
+
+        public IEnumerable<string> GetAllPropertyNames()
+        {
+            HashSet<string> allPropertyNames = new HashSet<string>();
+            foreach (var p in _properties)
+                foreach (var v in p.Value)
+                    allPropertyNames.Add(v.Key);
+
+            return allPropertyNames;
         }
 
 

@@ -1,3 +1,8 @@
+## 0.3.4 (2024-02-07)
+
+* Removed KnotGlobalBindings static class
+* Added GetAllPropertyNames method for KnotBindingsContainer
+
 ## 0.3.3 (2023-24-11)
 
 * Added HasProperty to KnotBindingsContainer
