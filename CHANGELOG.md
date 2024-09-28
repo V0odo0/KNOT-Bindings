@@ -1,3 +1,7 @@
+## 0.4.0 (2024-09-29)
+
+* Migrating to Unity 2021.3+
+
 ## 0.3.4 (2024-02-07)
 
 * Removed KnotGlobalBindings static class
