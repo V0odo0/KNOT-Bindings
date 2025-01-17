@@ -1,10 +1,11 @@
 {
   "name": "com.knot.bindings",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "author": "V0odo0",
   "displayName": "KNOT Bindings",
   "unity": "2021.3",
-  "description": "Smart property bindings solution for Unity",
+  "description": "Smart property bindings solution for Unity",  
+  "changelogUrl": "https://github.com/V0odo0/KNOT-Bindings/blob/main/CHANGELOG.md",
   "keywords": [
     "property",
     "bindings"
